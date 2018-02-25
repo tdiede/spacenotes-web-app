@@ -18,10 +18,7 @@ WEB APP STUFF
 
 */
 exports.spacenotes = functions.https.onRequest((request, response) => {
- response.send(
- 	`Hello from Therese! Insert web interface here.
- 	Display all our database on the web.`
- );
+ response.send();
 });
 
 

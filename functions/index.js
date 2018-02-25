@@ -12,11 +12,6 @@ admin.initializeApp(functions.config().firebase);
 
 
 
-
-
-
-
-
 /*
 
 WEB APP STUFF
@@ -72,62 +67,35 @@ const ticketWebhook = (event) => {
   let z = event.data.val().z.toString();
   let ticketId = event.params.ticketId;
   let timestamp = Date.now();
-  let options = {
+
+  let message;
+
+  // it's an UPDATE if both data and previous exist.
+  if (event.data.exists() && event.data.previous.exists()) {
+  	message = 'Ticket [ticket id: ' + ticketId + '] was updated in Firebase @ time=' + timestamp + '.';
+  } else if (event.data.exists()) {  // it's a CREATE if noly data exists.
+  	message = 'x: ' + x + '\ny: ' + x + '\nz: ' + z + '\ncontent: ' + content + ' <<<< A new ticket [ticket id: ' + ticketId + '] was created in Firebase @ time=' + timestamp + '.';
+  } else if (event.data.exists()) {  // it's a DELETE if only previous exists.
+  	message = 'Ticket [ticket id: ' + ticketId + '] was deleted @ time=' + timestamp + '.';
+  }
+
+  return {
     uri: WEBHOOK_URL,
     method: 'POST',
     json: true,
-    body: { text: 'x: ' + x + '\ny: ' + x + '\nz: ' + z + '\ncontent: ' + content + ' <<<< A new ticket [ticket id: ' + ticketId + '] was created in Firebase @ time=' + timestamp + '.' },
+    body: { text: message },
     resolveWithFullResponse: true,
   };
-  return options;
 };
 
 
-exports.createTicket = functions.database.ref('/tickets/{ticketId}').onCreate((event) => {
+exports.createTicket = functions.database.ref('/tickets/{ticketId}').onWrite((event) => {
   let options = ticketWebhook(event);
   return request(options).then((response) => {
     if (response.statusCode >= 400) {
       throw new Error(`HTTP Error, customized: ${response.statusCode}`);
     }
-    // return console.log(Object.keys(event.data.ref));
     return console.log('SUCCESS! Posted', event.data.ref.path);
   });
 });
 
-
-exports.updateTicket = functions.database.ref('/tickets/{ticketId}').onUpdate((event) => {
-  let ticketId = event.params.ticketId;
-  let timestamp = Date.now();
-  let options = {
-    uri: WEBHOOK_URL,
-    method: 'POST',
-    json: true,
-    body: { text: 'Ticket [ticket id: ' + ticketId + '] was updated in Firebase @ time=' + timestamp + '.' },
-    resolveWithFullResponse: true,
-  };
-  return request(options).then((response) => {
-    if (response.statusCode >= 400) {
-      throw new Error(`HTTP Error, customized: ${response.statusCode}`);
-    }
-    return console.log('SUCCESS! Posted', event.data.ref);
-  });
-});
-
-
-exports.deleteTicket = functions.database.ref('/tickets/{ticketId}').onDelete((event) => {
-  let ticketId = event.params.ticketId;
-  let timestamp = Date.now();
-  let options = {
-    uri: WEBHOOK_URL,
-    method: 'POST',
-    json: true,
-    body: { text: 'Ticket [ticket id: ' + ticketId + '] was deleted @ time=' + timestamp + '.' },
-    resolveWithFullResponse: true,
-  };
-  return request(options).then((response) => {
-    if (response.statusCode >= 400) {
-      throw new Error(`HTTP Error, customized: ${response.statusCode}`);
-    }
-    return console.log('SUCCESS! Posted', event.data.ref);
-  });
-});

@@ -13,6 +13,8 @@
     "ajv": "^6.1.1",
     "firebase-admin": "~5.8.1",
     "firebase-functions": "^0.8.1",
+    "jade": "^1.11.0",
+    "jinja-js": "^0.1.8",
     "request": "^2.83.0",
     "request-promise": "^4.2.2"
   },
